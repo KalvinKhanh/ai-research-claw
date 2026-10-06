@@ -86,12 +86,12 @@ def create_app(
     # --- Routes ---
     from researchclaw.server.routes.pipeline import router as pipeline_router
     from researchclaw.server.routes.projects import router as projects_router
-    from researchclaw.server.routes.phase1 import router as phase1_router
+    from researchclaw.server.routes.engine_runs import router as engine_runs_router
     from researchclaw.server.routes.bedrock import router as bedrock_router
 
     app.include_router(pipeline_router)
     app.include_router(projects_router)
-    app.include_router(phase1_router)
+    app.include_router(engine_runs_router)
     app.include_router(bedrock_router)
 
     if not dashboard_only:
