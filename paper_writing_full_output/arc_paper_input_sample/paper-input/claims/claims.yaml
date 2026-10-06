@@ -1,0 +1,22 @@
+claims:
+  - id: C-001
+    type: empirical
+    statement: >
+      In the supplied five-run integration fixture, the NumPy vectorized implementation
+      had lower mean latency than the Python-loop wrapper.
+    support:
+      - evidence/experiment_summary.json
+      - evidence/runs/run-001.json
+      - evidence/runs/run-002.json
+      - evidence/runs/run-003.json
+      - evidence/runs/run-004.json
+      - evidence/runs/run-005.json
+    approved_for_draft: true
+
+  - id: C-002
+    type: limitation
+    statement: >
+      The measurements are machine-dependent and are not evidence of universal performance superiority.
+    support:
+      - methodology/environment.yaml
+    approved_for_draft: true

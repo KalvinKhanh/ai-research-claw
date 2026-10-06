@@ -1,0 +1,42 @@
+{
+  "primary_metric": 0.927189,
+  "metric_key": "numpy_vectorized_latency_ms",
+  "metrics": {
+    "python_loop_latency_ms_mean": 16.644221,
+    "python_loop_latency_ms_std": 1.528168,
+    "numpy_vectorized_latency_ms_mean": 0.927189,
+    "numpy_vectorized_latency_ms_std": 0.05455,
+    "speedup_x_mean": 17.95636,
+    "speedup_x_std": 1.330847,
+    "relative_latency_reduction_pct": 94.429363,
+    "run_count": 5
+  },
+  "hypotheses": {
+    "h1": {
+      "supported": true,
+      "value": 17.95636,
+      "details": "H1 is supported in this integration fixture if the vectorized implementation is faster in mean latency."
+    }
+  },
+  "summary": "Across 5 measured executions, NumPy vectorized rolling mean averaged 0.927 ms versus 16.644 ms for the loop-wrapped baseline.",
+  "structured_results": {
+    "conditions": {
+      "python_loop": {
+        "latency_ms_mean": 16.644221,
+        "latency_ms_std": 1.528168
+      },
+      "numpy_vectorized": {
+        "latency_ms_mean": 0.927189,
+        "latency_ms_std": 0.05455
+      }
+    },
+    "artifacts": {
+      "figures": [
+        "evidence/figures/latency_comparison.png"
+      ],
+      "data": [
+        "evidence/tables/run_metrics.csv"
+      ]
+    }
+  }
+}

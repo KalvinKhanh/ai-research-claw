@@ -1,0 +1,19 @@
+project:
+  name: "sample-paper-only"
+  mode: "co-pilot"
+
+research:
+  topic: "Vectorized Rolling-Mean Computation in Python: A Small Reproducible Integration Fixture"
+  domains:
+    - "numerical-computing"
+  quality_threshold: 4.0
+
+security:
+  hitl_required_stages: [20]
+  allow_publish_without_approval: false
+
+export:
+  target_conference: "iclr_2026"
+
+# LLM/provider fields must be filled from the deployment's normal ARC config.
+# Experiment execution is intentionally bypassed by the paper-only wrapper.

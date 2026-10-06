@@ -1,0 +1,48 @@
+schema_version: "1.0"
+package_type: "paper-writing-input"
+sample_fixture: true
+
+project:
+  id: "SAMPLE-PAPER-001"
+  title: "Vectorized Rolling-Mean Computation in Python: A Small Reproducible Integration Fixture"
+  domain: "numerical-computing"
+
+arc_mapping:
+  research_topic_from: "research/context.md"
+  analysis_from: "evidence/analysis.md"
+  decision_from: "evidence/decision.md"
+  experiment_summary_from: "evidence/experiment_summary.json"
+  runs_from: "evidence/runs/"
+  refinement_log_from: "evidence/refinement_log.json"
+  experiment_code_from: "methodology/code/"
+  bibliography_from: "literature/references.bib"
+
+inputs:
+  required:
+    - research/context.md
+    - methodology/method.md
+    - evidence/analysis.md
+    - evidence/decision.md
+    - evidence/runs/
+  recommended:
+    - literature/references.bib
+    - research/questions.yaml
+    - research/hypotheses.yaml
+    - methodology/experiment.yaml
+    - evidence/experiment_summary.json
+    - publication/target.yaml
+  optional:
+    - literature/notes.md
+    - research/contributions.md
+    - methodology/environment.yaml
+    - methodology/code/
+    - evidence/refinement_log.json
+    - evidence/figures/
+    - evidence/tables/
+    - claims/claims.yaml
+    - publication/author_instructions.md
+
+integrity:
+  empirical_numbers_source: "evidence/runs/*.json and evidence/experiment_summary.json"
+  forbid_unverified_numbers: true
+  final_human_approval_required: true

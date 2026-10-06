@@ -1,0 +1,27 @@
+{
+  "status": "success",
+  "primary_metric": "latency_ms",
+  "metric_key": "numpy_vectorized_latency_ms",
+  "metric_direction": "minimize",
+  "run_count": 5,
+  "condition_summaries": {
+    "python_loop": {
+      "status": "success",
+      "mean_latency_ms": 16.644221,
+      "std_latency_ms": 1.528168,
+      "seed_count": 5
+    },
+    "numpy_vectorized": {
+      "status": "success",
+      "mean_latency_ms": 0.927189,
+      "std_latency_ms": 0.05455,
+      "seed_count": 5
+    }
+  },
+  "comparisons": {
+    "numpy_vectorized_vs_python_loop": {
+      "speedup_x_mean": 17.95636,
+      "relative_latency_reduction_pct": 94.429363
+    }
+  }
+}

@@ -97,6 +97,7 @@ class LLMClient:
         self.config = config
         self._model_chain = [config.primary_model] + list(config.fallback_models)
         self._anthropic = None  # Will be set by from_rc_config if needed
+        self._bedrock = None  # Will be set by from_rc_config if needed
 
     @staticmethod
     def _normalize_wire_api(wire_api: str) -> str:
@@ -174,6 +175,11 @@ class LLMClient:
             client._anthropic = AnthropicAdapter(
                 original_base_url, original_api_key, config.timeout_sec
             )
+        elif preset.get("adapter") == "bedrock" or provider == "bedrock":
+            from .bedrock_adapter import BedrockAdapter
+
+            region = getattr(rc_config.llm, "region", None) or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "us-east-1"
+            client._bedrock = BedrockAdapter(region=region, timeout_sec=config.timeout_sec)
         return client
 
     @classmethod
@@ -465,8 +471,12 @@ class LLMClient:
     ) -> LLMResponse:
         """Make a single API call."""
 
-        # Use Anthropic adapter if configured
-        if self._anthropic:
+        # Use Bedrock or Anthropic adapter if configured
+        if self._bedrock:
+            data = self._bedrock.chat_completion(
+                model, messages, max_tokens, temperature, json_mode
+            )
+        elif self._anthropic:
             data = self._anthropic.chat_completion(
                 model, messages, max_tokens, temperature, json_mode
             )

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoResearchClaw &mdash; Phase 1 Research</title>
+  <meta name="description" content="Giao diện tối giản trực quan hóa kết quả Phase 1 (Stage 1 - Stage 8) của AutoResearchClaw" />
+  
+  <!-- Modern Clean Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- CDNs for Charts & Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+
+  <!-- Custom Minimalist Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Minimalist Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-logo-icon">ARC</div>
+        <div class="brand-title">AutoResearchClaw</div>
+      </div>
+
+      <div class="header-badges">
+        <span class="pill-badge green">● Phase 1 Complete (Stage 1 – 8)</span>
+        <span class="pill-badge mono" id="header-run-id">rc-20261002-071102-69a705</span>
+      </div>
+
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn" onclick="exportDataJson()">Xuất dữ liệu JSON</button>
+        <button class="btn btn-primary" onclick="openRunnerModal()">▶ Vận hành Phase 1</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Clean Context Banner -->
+  <section class="topic-banner">
+    <div class="topic-banner-container">
+      <div class="topic-text">
+        <span class="topic-tag">Đề tài</span>
+        <span class="topic-title" id="banner-topic">Retrieval-augmented generation for scientific literature question answering</span>
+      </div>
+      <div class="topic-specs">
+        <span>Benchmark: <strong id="banner-benchmark" style="color:var(--text-main);">QASPER</strong></span>
+        <span>Target: <strong id="banner-model" style="color:var(--text-main);">Llama-3-8B</strong></span>
+        <span>GPU: <strong id="banner-gpu" style="color:var(--text-main);">GTX 1650 (4 GB)</strong></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Minimalist Stage Stepper -->
+  <section class="stepper-section">
+    <div class="stepper-container">
+      <div class="stepper-track" id="stepper-track">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 Minimalist Navigation Tabs -->
+  <nav class="tabs-nav-bar">
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="overview">
+        📊 Tổng quan
+      </button>
+      <button class="tab-btn" data-tab="stages">
+        🔬 Chi tiết 8 Stage <span class="badge-counter">1 – 8</span>
+      </button>
+      <button class="tab-btn" data-tab="literature">
+        📚 Kho Bài báo <span class="badge-counter">654</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Views -->
+  <main class="main-wrapper">
+
+    <!-- VIEW 1: Overview & Analytics -->
+    <section class="view-section active" id="view-overview">
+      
+      <!-- Metrics Row -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Tổng bài crawl</div>
+          <div class="metric-value" id="kpi-total-candidates">654</div>
+          <div class="metric-sub">OpenAlex (381) + arXiv (273)</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Bài tuyển chọn (Gate 5)</div>
+          <div class="metric-value" id="kpi-shortlisted" style="color:#059669;">16</div>
+          <div class="metric-sub">Độ tương thích cao nhất</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Thẻ tri thức (Cards)</div>
+          <div class="metric-value" id="kpi-cards-count">6</div>
+          <div class="metric-sub">Phương pháp & Hạn chế</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Điểm tính mới (Novelty)</div>
+          <div class="metric-value" id="kpi-novelty-score" style="color:#0284c7;">1.0</div>
+          <div class="metric-sub">0 công trình trùng lặp</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Thời gian thực thi</div>
+          <div class="metric-value" id="kpi-total-duration">13.4m</div>
+          <div class="metric-sub">Tự hành hoàn toàn 8 stage</div>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid-minimal">
+        <div class="chart-card-minimal">
+          <div class="chart-header-minimal">
+            <div>
+              <div class="chart-title-minimal">Xu hướng công bố bài báo (2020 – 2026)</div>
+              <div class="chart-subtitle-minimal">Số lượng nghiên cứu về Scientific RAG qua các năm</div>
+            </div>
+          </div>
+          <div class="chart-container-minimal">
+            <canvas id="chart-year-dist"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card-minimal">
+          <div class="chart-header-minimal">
+            <div>
+              <div class="chart-title-minimal">Thời gian chạy từng Stage (Giây)</div>
+              <div class="chart-subtitle-minimal">Stage 8 (Sinh giả thuyết) và Stage 4, 5 chiếm phần lớn thời gian</div>
+            </div>
+          </div>
+          <div class="chart-container-minimal">
+            <canvas id="chart-stage-durations"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Foundational Papers Spotlight -->
+      <div class="table-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:0.95rem; font-weight:700; color:var(--text-main);">Top bài báo nền tảng có trích dẫn cao nhất</div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Các công trình kinh điển trong kho dữ liệu thu thập</div>
+          </div>
+          <button class="btn" onclick="switchTab('literature')">Xem tất cả bài báo →</button>
+        </div>
+
+        <table class="minimal-table">
+          <thead>
+            <tr>
+              <th style="width:30px;">#</th>
+              <th>Tiêu đề bài báo</th>
+              <th style="width:80px;">Năm</th>
+              <th>Hội nghị / Tạp chí</th>
+              <th style="width:110px; text-align:right;">Trích dẫn</th>
+              <th style="width:70px; text-align:center;">Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody id="overview-top-papers-tbody">
+            <!-- Dynamically populated by app.js -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: Stages 1-8 Deep Dive -->
+    <section class="view-section" id="view-stages">
+      <div class="stage-split-view">
+        <aside class="stage-menu">
+          <div style="padding:0.4rem 0.75rem; font-size:0.72rem; font-weight:700; color:var(--text-subtle); text-transform:uppercase;">
+            Các Stage (Phase 1)
+          </div>
+          <div id="stage-nav-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </aside>
+
+        <div class="stage-content-box">
+          <div class="stage-content-header">
+            <div>
+              <div class="stage-content-title" id="stage-view-title">Stage 1: Topic Scoping</div>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;" id="stage-view-desc">Khởi tạo đề tài và phạm vi nghiên cứu.</div>
+            </div>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <span class="pill-badge green" id="stage-view-status">✓ Hoàn thành</span>
+              <span class="pill-badge mono" id="stage-view-duration">⏱ 37.9s</span>
+            </div>
+          </div>
+
+          <div id="stage-view-body">
+            <!-- Stage markdown / output rendered here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: Literature Explorer -->
+    <section class="view-section" id="view-literature">
+      
+      <!-- Controls -->
+      <div class="lit-bar">
+        <div class="lit-search-box">
+          <input type="text" id="lit-search-input" placeholder="Tìm kiếm bài báo theo tiêu đề, tác giả, tóm tắt..." />
+        </div>
+
+        <div class="lit-pill-toggles">
+          <button class="lit-pill-btn active" data-mode="shortlist">
+            🎯 16 Bài tuyển chọn
+          </button>
+          <button class="lit-pill-btn" data-mode="corpus">
+            📚 Toàn bộ 654 bài crawl
+          </button>
+        </div>
+
+        <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted);" id="lit-count-label">
+          Hiển thị 16 bài
+        </div>
+      </div>
+
+      <!-- Paper list -->
+      <div id="lit-papers-list">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <!-- Minimal Pagination -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+        <button class="btn" id="lit-prev-page">← Trang trước</button>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="lit-page-info">Trang 1 / 1</span>
+        <button class="btn" id="lit-next-page">Trang sau →</button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Minimalist Paper Modal -->
+  <div class="modal-overlay" id="paper-modal-overlay">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div id="paper-modal-body">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimalist Phase 1 Runner Modal -->
+  <div class="modal-overlay" id="runner-modal-overlay">
+    <div class="modal-card" style="max-width:640px;">
+      <button class="modal-close" id="runner-close-btn">&times;</button>
+      <div>
+        <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.35rem;">Khởi chạy Nghiên cứu Phase 1</div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+          Thực thi tự động từ Stage 1 đến Stage 8: Khởi tạo đề tài &rarr; Thu thập bài báo (OpenAlex, arXiv) &rarr; Sàng lọc chất lượng &rarr; Trích xuất tri thức &rarr; Tổng hợp & Sinh giả thuyết.
+        </p>
+
+        <div style="margin-bottom:0.85rem;">
+          <label style="display:block; font-size:0.75rem; font-weight:700; color:var(--text-main); margin-bottom:0.35rem;">
+            ĐỀ TÀI NGHIÊN CỨU (RESEARCH TOPIC)
+          </label>
+          <textarea id="runner-topic-input" rows="2" style="width:100%; padding:0.65rem; font-size:0.85rem; border:1px solid var(--border); border-radius:6px; outline:none; font-family:var(--font-sans);" placeholder="Ví dụ: Retrieval-augmented generation for scientific literature question answering"></textarea>
+        </div>
+
+        <div style="margin-bottom:1rem; padding:0.6rem 0.85rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; font-size:0.78rem; color:#166534; display:flex; align-items:center; gap:0.4rem;">
+          <span>✓</span>
+          <span><strong>API Key đã sẵn sàng:</strong> Tự động sử dụng khóa đã cấu hình trong <code>.env</code> của máy chủ.</span>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <div style="font-size:0.75rem; color:var(--text-muted);">
+            Trạng thái Backend: <span id="backend-status-badge" class="pill-badge mono">Đang kiểm tra...</span>
+          </div>
+          <button class="btn btn-primary" id="btn-start-pipeline" onclick="submitRunPipeline()">
+            🚀 Bắt đầu thực thi
+          </button>
+        </div>
+
+        <!-- Terminal log output box -->
+        <div style="background:#0f172a; color:#f8fafc; border-radius:6px; padding:0.85rem; font-family:var(--font-mono); font-size:0.75rem; max-height:180px; overflow-y:auto; line-height:1.45;" id="runner-terminal-box">
+          <div style="color:#94a3b8;">// Chờ lệnh thực thi từ người dùng...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    function exportDataJson() {
+      if (!window.AUTORESEARCH_DATA) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.AUTORESEARCH_DATA, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `ARC_Phase1_${window.AUTORESEARCH_DATA.run_id}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  </script>
+</body>
+</html>

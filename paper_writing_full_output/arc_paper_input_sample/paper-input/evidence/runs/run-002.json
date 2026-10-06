@@ -1,0 +1,20 @@
+{
+  "run_id": "RUN-002",
+  "status": "success",
+  "returncode": 0,
+  "elapsed_sec": 0.0182,
+  "timed_out": false,
+  "metrics": {
+    "python_loop/benchmark/latency_ms": 17.162238,
+    "numpy_vectorized/benchmark/latency_ms": 0.984641,
+    "speedup_x": 17.429945
+  },
+  "stdout": "python_loop/benchmark/latency_ms: 17.162238\nnumpy_vectorized/benchmark/latency_ms: 0.984641\nspeedup_x: 17.429945\n",
+  "stderr": "",
+  "provenance": {
+    "fixture": true,
+    "generated_by": "sample-package-builder",
+    "array_length": 180000,
+    "window": 32
+  }
+}

@@ -1,0 +1,5 @@
+research_questions:
+  - id: RQ1
+    statement: >
+      For the supplied benchmark workload, does the direct NumPy vectorized implementation
+      exhibit lower measured latency than the Python-side loop wrapper?

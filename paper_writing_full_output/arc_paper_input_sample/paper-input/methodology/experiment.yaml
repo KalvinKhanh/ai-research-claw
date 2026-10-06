@@ -1,0 +1,19 @@
+experiment:
+  id: EXP-001
+  objective: Compare latency of two equivalent rolling-mean implementations.
+  workload:
+    array_length: 180000
+    window: 32
+    dtype: float64
+  conditions:
+    - id: python_loop
+      role: baseline
+    - id: numpy_vectorized
+      role: proposed
+  metrics:
+    - name: latency_ms
+      direction: minimize
+    - name: speedup_x
+      direction: maximize
+  run_count: 5
+  correctness_check: numpy.allclose

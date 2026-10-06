@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Paper Writing Input Manifest (illustrative)",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "package_type",
+    "project",
+    "arc_mapping",
+    "inputs"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "package_type": {
+      "const": "paper-writing-input"
+    },
+    "sample_fixture": {
+      "type": "boolean"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "domain"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

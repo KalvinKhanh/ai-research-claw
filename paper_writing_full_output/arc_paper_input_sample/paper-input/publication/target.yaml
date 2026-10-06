@@ -1,0 +1,9 @@
+publication:
+  target_type: conference
+  target_conference: iclr_2026
+  language: English
+  citation_style: numeric
+  output:
+    markdown: true
+    latex: true
+    pdf_if_compiler_available: true

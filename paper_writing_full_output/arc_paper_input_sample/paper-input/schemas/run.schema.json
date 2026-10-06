@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ARC-compatible Experiment Run (proposed external contract)",
+  "type": "object",
+  "required": [
+    "status",
+    "metrics"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "returncode": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "elapsed_sec": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "timed_out": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "number",
+          "string",
+          "boolean",
+          "null"
+        ]
+      }
+    },
+    "key_metrics": {
+      "type": "object"
+    },
+    "stdout": {
+      "type": "string"
+    },
+    "stderr": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "object"
+    }
+  }
+}

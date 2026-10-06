@@ -1,0 +1,7 @@
+environment:
+  purpose: integration-fixture
+  python_version: "3.13.5"
+  numpy_version: "2.3.5"
+  measurement_clock: time.perf_counter
+  notes:
+    - Values are machine-dependent and should not be generalized beyond this fixture.

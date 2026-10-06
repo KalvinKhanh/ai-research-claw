@@ -1,0 +1,10 @@
+{
+  "iterations": [],
+  "converged": true,
+  "stop_reason": "external_results_imported_no_refinement",
+  "best_metric": {
+    "metric_key": "numpy_vectorized_latency_ms",
+    "value": 0.927189,
+    "direction": "minimize"
+  }
+}

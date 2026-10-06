@@ -51,6 +51,10 @@ PROVIDER_PRESETS = {
     "ollama": {
         "base_url": "http://localhost:11434/v1",
     },
+    "bedrock": {
+        "base_url": None,
+        "adapter": "bedrock",
+    },
     "openai-compatible": {
         "base_url": None,  # Use user-provided base_url
     },
