@@ -46,23 +46,26 @@ Topic: "{topic}"
 Fields: {domain_str}
 
 FIRST: Rigorously determine if "{topic}" is a legitimate scientific / empirical research topic.
-If it is casual conversation, personal talk, everyday food/drink/eating (e.g. "tôi muốn ăn cơm", "ăn cơm", "chào bạn", "hello"), nonsense words, jokes, or non-academic statements:
+If it is casual dialogue, personal advice, everyday consumer/how-to inquiries (e.g. "how to troubleshoot home Wi-Fi issues", "recommend a good laptop under $1000", "tell me a joke", "hello there"), subjective opinions ("is blue the best color"), or non-empirical statements:
 - It is NOT valid scientific research!
 - Return valid JSON with:
   "is_valid": false,
-  "rejection_reason": "Topic is casual conversation or non-scientific text, not an empirical research problem.",
+  "rejection_reason": "Topic is a casual inquiry or non-empirical statement, lacking measurable dependent/independent variables and testable hypotheses.",
   "topic_scores": {"novelty": 1, "specificity": 1, "feasibility": 1},
   "overall_score": 1.0,
-  "topic_advice": "Chủ đề này không phải là một vấn đề nghiên cứu khoa học thực nghiệm. Vui lòng nhập một câu hỏi nghiên cứu có biến số và giả thuyết có thể kiểm chứng.",
+  "topic_advice": "This topic is not an empirical research problem. Please formulate a scientific research question with identifiable variables, measurable outcomes, and falsifiable hypotheses.",
   "working_title": "{topic}",
-  "problem": "Vấn đề chưa được định hình theo phương pháp luận khoa học.",
-  "objective": "Cần xác định lại mục tiêu nghiên cứu cụ thể.",
-  "scope_boundary": "Nằm ngoài phạm vi nghiên cứu khoa học thực nghiệm.",
-  "success_criteria": "Chưa đạt tiêu chuẩn kiểm định khoa học.",
-  "sub_questions": [{"id": "SQ1", "text": "...", "priority": 1, "covers": ["clarity"]}],
-  "risks": [{"id": "R1", "sq_id": "SQ1", "text": "...", "level": "high"}],
-  "estimates": [{"id": "E1", "text": "..."}],
-  "say_profile": "...", "say_goal": "...", "say_decompose": "...", "say_evaluate": "..."
+  "problem": "The inquiry lacks formal scientific problem formulation under empirical methodology.",
+  "objective": "A measurable, hypothesis-driven scientific objective must be defined.",
+  "scope_boundary": "Outside the domain of empirical academic inquiry.",
+  "success_criteria": "Undefined under standard scientific verification criteria.",
+  "sub_questions": [{"id": "SQ1", "text": "Define verifiable empirical research question for this topic", "priority": 1, "covers": ["clarity"]}],
+  "risks": [{"id": "R1", "sq_id": "SQ1", "text": "Lacks theoretical foundation and observational data", "level": "high"}],
+  "estimates": [{"id": "E1", "text": "No quantifiable baseline statistic available"}],
+  "say_profile": "The domain is unsuited for formal scientific empirical research.",
+  "say_goal": "Cannot formalize an empirical research goal without measurable variables.",
+  "say_decompose": "Unable to decompose into falsifiable empirical sub-questions.",
+  "say_evaluate": "PI Evaluation: Topic does not meet academic research criteria (1.0/10). Pipeline halted to redefine research scope."
 
 IF it IS a legitimate academic/empirical research topic:
 - Evaluate novelty (1-10), specificity (1-10), feasibility (1-10) realistically.
@@ -207,7 +210,7 @@ interface ScopeOutputContract {
 #### 4. Tiêu chí & Công thức Đo lường Độ Tin Cậy (Reliability Rubric)
 | Mã kiểm thử | Tên tiêu chí đo lường | Điều kiện Pass (Assertion) | Trọng số |
 |---|---|---|:---:|
-| `SCO-VAL-01` | **Phát hiện câu phi học thuật** | Nhập `"tôi muốn ăn cơm"` hoặc `"hello"` → Trả về `is_valid: false`, `overall_score <= 1.0`. Nếu trả về `true` → **Trượt độ tin cậy ngay lập tức (Score = 0)**. | 25% |
+| `SCO-VAL-01` | **Phát hiện câu phi học thuật (Out-of-Scope Guard)** | Nhập câu hỏi đời thường/hướng dẫn tiêu dùng (e.g. `"How to troubleshoot intermittent home Wi-Fi issues"` hoặc `"tell me a funny story"`) → Trả về `is_valid: false`, `overall_score <= 1.0`. Nếu mô hình chấp nhận đề tài phi khoa học này và cho điểm cao → **Trượt độ tin cậy ngay lập tức (Score = 0)**. | 25% |
 | `SCO-MEC-02` | **Nguyên lý MECE của Sub-questions** | Số lượng SQ từ 3 đến 4. Không có 2 SQ nào có độ tương đồng ngữ nghĩa (Cosine Embedding Sim) > 0.85. Tập hợp các trường `covers` phải bao phủ ≥ 90% từ khóa của topic. | 25% |
 | `SCO-SMA-03` | **Chuẩn SMART Goal** | Có đủ 5 trường (`title`, `problem`, `objective`, `scope`, `success`). Trường `success_criteria` bắt buộc chứa chỉ số định lượng hoặc khoảng tin cậy (CI, p-value, effect size). | 20% |
 | `SCO-RSK-04` | **Toàn vẹn khóa ngoại (Foreign Key Lineage)** | Mọi `sq_id` trong mảng `risks` phải tồn tại trong danh sách `sub_questions`. | 15% |
@@ -930,24 +933,279 @@ graph TD
     TC3 --> Eval3["Đo lường: False Friend Rejection Precision (Same words, wrong field)"]
 ```
 
-### Kịch bản 1: Standard Empirical Topic (Đề tài Khoa học Chuẩn)
-- **Topic Input:** `"Effects of sleep duration on exam scores"`
-- **Mục tiêu đo lường:** Kiểm tra khả năng hoàn thành đầy đủ 6 Stage với tính nhất quán dữ liệu xuyên suốt (Lineage), độ phong phú của giả thuyết, và tính khả bác của vùng đỏ Karl Popper.
-
-### Kịch bản 2: Adversarial Casual Topic (Đề tài Đời thường / Bẫy Phi học thuật)
-- **Topic Input:** `"tôi muốn ăn cơm hôm nay"`
-- **Mục tiêu đo lường:** Đo lường **Độ tin cậy của hàng rào phòng thủ sớm (Early Gate Guard)**:
-  - **Mô hình có độ tin cậy cao:** Trả về `is_valid: false`, `overall_score: 1.0` ngay tại Stage 01, ngắt pipeline, không hallucinate bài báo hay giả thuyết khoa học về việc "ăn cơm".
-  - **Mô hình có độ tin cậy kém:** Bị lừa, tự bịa ra giả thuyết "ăn cơm giúp tăng 20% trí thông minh", cào bài báo vớ vẩn và chạy tiếp Stage 02 → Stage 06.
-
-### Kịch bản 3: Polysemy Ambiguity Topic (Đề tài Bẫy Từ Đồng Âm Khác Ngành)
-- **Topic Input:** `"Disconnection-induced staleness in distributed gradient optimization"`
-- **Mục tiêu đo lường:** Đo lường **Khả năng phân biệt ngữ cảnh chuyên sâu (Semantic Disambiguation)**:
-  - Kiểm tra xem tại Stage 03, mô hình có nhận diện được các bài báo về "Stale bread in food science" (bánh mì cũ hỏng trong công nghệ thực phẩm) hay "Staleness in browser cache" (bộ nhớ đệm trình duyệt) là bài báo thuộc lĩnh vực khác cần loại bỏ hay không.
+### Kịch bản 1: Happy Case A — Cognitive Psychology & Education (Đề tài Thực nghiệm Khoa học Hành vi)
+- **Topic Input:** `"Impact of objective sleep duration and circadian consistency on standardized exam scores"`
+- **Lĩnh vực (Domains):** `["Cognitive Psychology", "Neuroscience", "Educational Analytics"]`
+- **Mục tiêu đo lường Happy Case:** Kiểm tra khả năng vận hành hoàn hảo cả 6 Stage:
+  - *Stage 01 (Scope):* Nhận diện bài toán đo lường khách quan (actigraphy) thay vì khảo sát tự khai báo; phân rã thành 4 Sub-questions MECE (tác động trực tiếp, vai trò điều hòa của nhịp sinh học, cơ chế trung gian trí nhớ/lo âu, nợ ngủ 48h trước thi); Area Chair cho điểm $\ge 8.0/10$.
+  - *Stage 02 (Search):* Lập 3 chiến lược trực giao; 100% truy vấn đạt chuẩn 3–6 từ (`actigraphy sleep duration academic performance`, `sleep regularity index student grades`); cào đa nguồn OpenAlex, Semantic Scholar, arXiv.
+  - *Stage 03 (Screen):* 12 bài báo lọt vào Keep Zone ($Rel \ge 0.70, Qual \ge 0.50$ từ các venue uy tín như Nature, npj Science of Learning); phát hiện chính xác 3 bài trùng từ khóa sai ngành (False Friends: duty-cycle sleep trong mạng cảm biến, xếp lịch thi trong vận trù học).
+  - *Stage 04 (Read):* Trích xuất 12 thẻ tri thức chuẩn 6 trường (P-M-D-M-F-L); kiểm chứng số liệu ước tính.
+  - *Stage 05 (Synthesize):* Phân nhóm 3 trường phái (Quantity vs Regularity vs Exam Stress); chỉ ra 1 mâu thuẫn lý thuyết và 3 khoảng trống nghiên cứu có nguồn gốc từ limitations của văn hiến.
+  - *Stage 06 (Hypothesize):* Phiên tranh luận 3 vai trò (Theorist, Methodologist, Skeptic); thiết lập 4 giả thuyết khoa học độc nhất có vùng đỏ Karl Popper ($> 0$, $< 0$, $\neq 0$).
 
 ---
 
-## PHẦN 4: HƯỚNG DẪN THỰC THI SCRIPT ĐỐI CHIẾU TRÊN CODEBASE
+### Kịch bản 2: Happy Case B — Computer Science & Distributed AI (Đề tài Hệ thống Máy tính & An ninh Mạng)
+- **Topic Input:** `"Stale or Malicious? Disconnection-Induced Failures of History-Based Byzantine Defences in Asynchronous Federated Learning"`
+- **Lĩnh vực (Domains):** `["Distributed Systems", "Machine Learning", "Adversarial Robustness"]`
+- **Mục tiêu đo lường Happy Case:** Đối chiếu với dữ liệu chạy thực tế của hệ thống (`artifacts/rc-20261005-074706-96890a`):
+  - *Stage 01 (Scope):* Bóc tách bài toán phân định giữa độ trễ mạng tự nhiên (stragglers) và hành vi tấn công đầu độc (Byzantine poisoning) trong học liên kết bất đồng bộ; Area Chair đạt điểm $8.3/10$.
+  - *Stage 02 (Search):* Sinh các truy vấn học thuật chuẩn xác: `asynchronous federated learning byzantine`, `kardam asynchronous fl`, `straggler federated learning staleness`.
+  - *Stage 03 (Screen):* Giữ lại các công trình nền tảng về thuật toán lọc gradient (Kardam, Sageflow, Krum) và loại bỏ các bài báo không liên quan.
+  - *Stage 04 (Read):* Bóc tách giới hạn toán học (Lipschitz continuity assumptions, loss-weighted moving average attenuation).
+  - *Stage 05 (Synthesize):* Nhận diện nghịch lý giữa yêu cầu giảm độ trễ (Asynchronous speed) và yêu cầu kiểm tra lịch sử (Byzantine verification consistency); định vị Gap về nguy cơ tấn công Staleness-Masked Attack.
+  - *Stage 06 (Hypothesize):* Xây dựng giả thuyết kiểm định toán học: $H_1$ (Tỷ lệ False Positive tăng $\ge 35\%$), $H_2$ (Tấn công Staleness-Masked đạt ASR $> 80\%$), $H_3$ (Phép chiếu Gradient Alignment giảm tỷ lệ loại nhầm client $< 10\%$).
+
+---
+
+### Kịch bản 3: Out-of-Scope / Non-Empirical Inquiry Guard (Đề tài Đời thường / Bẫy Phi học thuật)
+- **Topic Input:** `"How to troubleshoot intermittent home Wi-Fi connectivity issues"`
+- **Mục tiêu đo lường:** Đo lường **Độ tin cậy của hàng rào phòng thủ sớm (Early Gate Guard)**:
+  - **Mô hình có độ tin cậy cao:** Nhận diện ngay đây là một câu hỏi hướng dẫn kỹ thuật gia đình (consumer IT troubleshooting guide), không phải bài toán nghiên cứu thực nghiệm học thuật (thiếu các biến độc lập/phụ thuộc đo lường được và giả thuyết có thể kiểm chứng). Trả về `is_valid: false`, `overall_score: 1.0` ngay tại Stage 01, dừng quy trình, hoàn toàn không hallucinate bài báo hay giả thuyết khoa học.
+  - **Mô hình có độ tin cậy kém:** Bị lừa, cố gắng "học thuật hóa" một hướng dẫn sửa mạng gia đình, tự bịa ra các bài báo ngụy tạo và tiếp tục chạy pipeline sang Stage 02 → Stage 06.
+
+---
+
+### Kịch bản 4: Polysemy Ambiguity Test (Bẫy Từ Đồng Âm Khác Ngành)
+- **Topic Input:** `"Disconnection-induced staleness in distributed gradient optimization"`
+- **Mục tiêu đo lường:** Đo lường **Khả năng phân biệt ngữ cảnh chuyên sâu (Semantic Disambiguation)**:
+  - Kiểm tra xem tại Stage 03, mô hình có nhận diện được các bài báo về "Staleness in HTTP proxy cache validation protocols" (bộ nhớ đệm web) hay "Stale stock quote pricing in high-frequency trading" (tài chính định lượng) là bài báo thuộc lĩnh vực khác cần đào thải hay không.
+
+---
+
+## PHẦN 4: SO SÁNH ĐỐI CHIẾU OUTPUT: MÔ HÌNH HIỆN TẠI (STRONG LLM) VS. MÔ HÌNH YẾU HƠN (WEAK/BASELINE LLM) & BẢN CHẤT ĐỘ TIN CẬY CỦA HYPOTHESIS
+
+Khi so sánh kết quả thực thi của mô hình hiện tại (Strong Model - ví dụ: Claude 3.5 Sonnet / Claude Haiku 4.5 kết hợp Agent Scaffolding và JSON Schema cứng) với các mô hình yếu hơn (Weaker Models - ví dụ: các LLM 7B/8B mã nguồn mở chưa qua căn chỉnh, các mô hình thiếu System Scaffolding, hoặc các LLM cơ bản không có ràng buộc chặt chẽ), output sinh ra có **sự phân hóa sâu sắc về bản chất học thuật và độ tin cậy**.
+
+---
+
+### 4.1. BẢNG SO SÁNH OUTPUT CỦA 6 GIAI ĐOẠN: MÔ HÌNH MẠNH VS. MÔ HÌNH YẾU
+
+| Giai đoạn (Stage) | Mô hình Mạnh / Đạt Chuẩn (Current Engine) | Mô hình Yếu / Không Đạt Chuẩn (Weaker / Baseline LLM) | Rủi ro Khi Dùng Mô hình Yếu |
+|---|---|---|---|
+| **01. Scope** | • Bóc tách mục tiêu SMART 5 phần có số liệu đo lường.<br>• 4 Sub-questions phân rã theo nguyên lý MECE (không trùng lặp, phủ kín chủ đề).<br>• Gắn cờ số liệu nhớ từ trí nhớ (`unverified estimate`).<br>• Chặn đứng các câu hỏi đời thường/phi khoa học (ngắt sớm). | • Mục tiêu chung chung, mơ hồ (văn xuôi cảm tính).<br>• Sub-questions trùng lặp ngữ nghĩa hoặc chỉ là diễn đạt lại câu hỏi gốc theo nhiều cách khác nhau.<br>• Tự bịa số liệu baseline SOTA mà không cảnh báo.<br>• Dễ bị lừa bởi câu hỏi đời thường, cố gắng "học thuật hóa" câu hỏi làm bánh/sửa máy. | Bắt đầu quy trình nghiên cứu bằng một bài toán sai lệch, không đo lường được, làm lãng phí toàn bộ tài nguyên các bước sau. |
+| **02. Search** | • Hoạch định 3 chiến lược trực giao (Hiện tượng, Cơ chế trung gian, Phương pháp đo).<br>• **100% truy vấn đạt chuẩn 3–6 từ**, tối ưu hóa cho công cụ tìm kiếm học thuật (BM25 & Vector).<br>• Khử trùng lặp qua DOI, citations và Levenshtein title. | • Chỉ tạo 1 hướng tìm kiếm duy nhất.<br>• Viết nguyên cả câu dài 15–20 từ làm truy vấn (khiến API học thuật trả về 0 kết quả hoặc kết quả nhiễu).<br>• Không khử trùng lặp bản ghi đa nguồn. | Không thu thập đủ văn hiến liên quan (Low Recall), bỏ sót các công trình bản lề của ngành. |
+| **03. Screen** | • Đánh giá 2D tách biệt: Relevance vs Quality.<br>• **Phát hiện chính xác False Friends** (từ đồng âm sai ngành: sleep mode trong cảm biến, scheduling trong toán).<br>• Bảo toàn bài kinh điển trước 2012 (Seminal Papers). | • Chỉ so khớp từ khóa nông (Lexical keyword matching).<br>• Giữ lại các bài báo IoT/Toán vì thấy có từ "sleep" và "exam".<br>• Thiên vị hoàn toàn bài mới (bỏ sót seminal papers) hoặc bịa đặt tên hội nghị/tạp chí. | Nguy cơ "Rác vào, rác ra" (Garbage in, Garbage out): Đưa các bài báo sai ngành vào khâu đọc sâu. |
+| **04. Read** | • Bóc tách cấu trúc 6 trường đồng nhất (P-M-D-M-F-L).<br>• **Tập trung đặc biệt vào limitations** (nguồn gốc phát sinh Gap).<br>• Kiểm chứng số liệu ở Stage 01 (Fact-checking Rule 6). | • Tóm tắt tự do theo dạng văn xuôi narrative.<br>• Bỏ qua trường limitations hoặc chỉ ghi chung chung ("cần thêm nghiên cứu trong tương lai").<br>• Tự xác nhận số liệu ảo giác ban đầu mà không có bằng chứng. | Đánh mất các điểm yếu phương pháp luận của SOTA, không có dữ liệu đầu vào để tìm ra khoảng trống nghiên cứu. |
+| **05. Synthesize** | • Phân cụm theo trường phái phương pháp luận.<br>• Chỉ ra **mâu thuẫn biện chứng (Dialectical Tension)** nơi 2 trường phái kéo về 2 hướng khác nhau.<br>• Gap có nguồn gốc minh bạch từ limitations (`gap.from`). | • Tóm tắt tuần tự theo danh bạ ("Bài A nói X, Bài B nói Y").<br>• Mô tả bức tranh đồng thuận một chiều, không phát hiện được mâu thuẫn lý thuyết.<br>• Gap được bịa đặt ngẫu nhiên, không gắn với bài báo nào trong Shortlist. | Nghiên cứu rơi vào lối mòn, không tìm ra điểm đột phá mới lạ (Lack of Novelty). |
+| **06. Hypothesize** | • Mô phỏng tranh luận đa vai trò (Theorist, Methodologist, Skeptic).<br>• **Giả thuyết có tính khả bác Karl Popper (Popperian Falsifiability)** kèm Vùng Đỏ Bác Bỏ.<br>• Danh mục giả thuyết đa dạng (`> 0`, `< 0`, `\ne 0`).<br>• Novelty và Rationale độc nhất cho từng giả thuyết.<br>• Khóa ngoại liên kết chặt chẽ về Gap và Sub-question. | • Độc thoại 1 chiều, không có phản biện hay red-teaming.<br>• **Giả thuyết bất khả bác (Unfalsifiable)**, nói nước đôi, không thể chứng minh là sai.<br>• **Sụp đổ đơn điệu (Monotonic Collapse)**: 100% giả thuyết đều dự đoán tăng trưởng một chiều (`> 0`).<br>• Lặp lại cùng 1 template novelty/rationale cho cả 4 giả thuyết.<br>• Giả thuyết "nhảy dù" không liên quan gì đến Gap ở Stage 05. | **Nguy cơ lớn nhất:** Sinh ra các giả thuyết ngụy khoa học, hiển nhiên hoặc bất khả thi, dẫn đến thực nghiệm thất bại hoàn toàn. |
+
+---
+
+### 4.2. GIẢI QUYẾT BÀI TOÁN CỐT LÕI: ĐỘ TIN CẬY CỦA DỮ LIỆU HYPOTHESIS DỰA TRÊN CÁI GÌ?
+
+Khi mô hình LLM trả ra dữ liệu Giả thuyết khoa học (Hypothesis), **ĐỘ TIN CẬY (Reliability & Scientific Trustworthiness)** KHÔNG PHẢI là câu văn viết có trôi chảy hay không, mà được quyết định bởi **5 Trụ Cột Phương Pháp Luận Khoa Học Khắt Khe**:
+
+```mermaid
+flowchart TD
+    subgraph Pillars ["5 Trụ Cột Đánh Giá Độ Tin Cậy Của Giả Thuyết Khoa Học (Hypothesis Reliability)"]
+        P1["1. Tiêu Chuẩn Khả Bác Karl Popper\n(Phải có Vùng Đỏ Bác Bỏ rõ ràng, không nói nước đôi)"]
+        P2["2. Lượng Hóa Biến Số & Estimand\n(Chỉ rõ Exposure, Outcome, Delta, Phương pháp thống kê)"]
+        P3["3. Đa Dạng Hóa Danh Mục Giả Thuyết\n(Portfolio gồm: Hiệu ứng chính > 0, Chi phí/Tổn thất < 0, Tương tác ≠ 0)"]
+        P4["4. Tính Độc Nhất Về Cơ Chế Nhân Quả\n(Mỗi giả thuyết có 1 cơ chế khoa học riêng, chống copy-paste template)"]
+        P5["5. Tính Liêm Chính Nguồn Gốc (Data Lineage)\n(Bắt buộc truy nguyên từ Gap cụ thể và Sub-question cụ thể)"]
+    end
+```
+
+#### Trụ Cột 1: Tiêu Chuẩn Khả Bác Của Karl Popper (Popperian Falsifiability Criterion)
+- **Bản chất khoa học:** Một mệnh đề chỉ là khoa học nếu nó nêu rõ điều kiện thực nghiệm nào sẽ chứng minh nó là **SAI**. Một tuyên bố mà trong bất kỳ trường hợp nào cũng tự cho là đúng chính là **Ngụy khoa học (Pseudoscience)**.
+- **Biểu hiện của mô hình yếu:**
+  - Viết giả thuyết nước đôi: *"Giấc ngủ có tác động đáng kể đến kết quả thi"* (dù điểm tăng, giảm hay giữ nguyên thì tác giả vẫn cãi là "có tác động").
+  - Trường `falsify` viết mơ hồ: *"Sai nếu học sinh không thấy tiến bộ"* hoặc *"Sai nếu kết quả không như kỳ vọng"*.
+- **Biểu hiện của mô hình mạnh:**
+  - Định nghĩa rõ **Vùng Đỏ Bác Bỏ (Falsification Zone)** với khoảng tin cậy 95% (95% CI):
+    - Dự đoán tăng (`> 0`): Vùng đỏ là $[-\infty, 0]$ $\to$ *"Wrong if the 95% bootstrap confidence interval includes zero or falls below 0"*.
+    - Dự đoán giảm/chi phí (`< 0`): Vùng đỏ là $[0, +\infty]$ $\to$ *"Wrong if the 95% confidence interval touches zero or indicates positive gain"*.
+    - Dự đoán tương tác (`\ne 0`): Vùng đỏ là $[0, 0]$ $\to$ *"Wrong if the interaction term touches zero"*.
+
+#### Trụ Cột 2: Lượng Hóa Biến Số & Phương Pháp Thống Kê (Quantified Estimand & Operationalization)
+- **Bản chất khoa học:** Giả thuyết không thể là lời khuyên chung chung. Nó phải được vận hành hóa (Operationalized) thành các biến số cụ thể:
+  - `exposure`: Biến can thiệp là gì? (Ví dụ: Số giờ ngủ đo bằng Actigraphy so với baseline cá nhân).
+  - `outcome`: Biến kết quả là gì? (Ví dụ: Điểm bài thi chuẩn hóa theo thang độ lệch chuẩn SD).
+  - `estimand`: Đại lượng ước lượng thống kê là gì? (Ví dụ: Hệ số hồi quy chuẩn hóa $\beta \ge 0.25$, hay tỷ lệ phần trăm trung gian mediated proportion $\ge 35\%$).
+  - `method`: Mô hình toán/thực nghiệm nào để kiểm định? (Ví dụ: Hồi quy hiệu ứng cố định Within-subjects fixed-effects panel regression, hay Bootstrap mediation).
+- **Mô hình yếu:** Bỏ qua hoàn toàn các trường này hoặc điền nội dung vô nghĩa: `exposure: "sleep"`, `outcome: "score"`, `method: "test"`.
+
+#### Trụ Cột 3: Đa Dạng Hóa Danh Mục Giả Thuyết (Directional Diversity Portfolio)
+- **Bản chất khoa học:** Trong thực tế, không có một giải pháp hay can thiệp nào chỉ mang lại toàn điều tốt đẹp mà không có chi phí, sự đánh đổi (trade-offs) hoặc điều kiện biên (boundary conditions).
+- **Hiện tượng "Sụp đổ đơn điệu" (Monotonic Positivity Collapse) của mô hình yếu:** Cả 4 giả thuyết $H_1, H_2, H_3, H_4$ đều dự đoán kết quả dương (`> 0`, `> 0`, `> 0`, `> 0`), thiên vị xác nhận một chiều (Confirmation Bias).
+- **Mô hình mạnh đạt chuẩn:** Phải xây dựng danh mục giả thuyết đa chiều:
+  - $H_1$: Dự đoán hiệu ứng chính tích cực (`> 0`: ngủ đủ giờ tăng điểm thi).
+  - $H_2$: Dự đoán tổn thất / hình phạt tiêu cực (`< 0`: giờ ngủ thất thường gây suy giảm trí nhớ làm việc $\ge 15\%$).
+  - $H_3$: Dự đoán tương tác điều hòa (`\ne 0`: nợ ngủ 48h trước thi triệt tiêu lợi ích tích lũy cả kỳ).
+  - $H_4$: Dự đoán tỷ lệ trung gian nhân quả (`> 0`: trí nhớ làm việc gánh $\ge 35\%$ hiệu ứng gián tiếp).
+
+#### Trụ Cột 4: Tính Độc Nhất Về Cơ Chế & Chống Suy Biến Văn Bản (Anti-Degeneracy & Unique Mechanisms)
+- **Bản chất khoa học:** Mỗi giả thuyết phải đại diện cho một câu hỏi nghiên cứu độc lập với cơ chế nhân quả riêng biệt.
+- **Biểu hiện suy biến của mô hình yếu:** Mô hình lặp lại nguyên văn cùng một câu chữ cho trường `novelty` và `rationale` ở cả 4 giả thuyết (ví dụ lặp lại: *"Isolates causal mechanisms under controlled conditions"* hoặc *"Derived from literature limitations"*).
+- **Mô hình mạnh đạt chuẩn:** 100% các câu `novelty` và `rationale` phải độc nhất, giải thích dựa trên cơ chế khoa học thực thụ:
+  - $H_1$ giải thích bằng cơ chế sinh học: Tái tạo khớp thần kinh vỏ não trước trán (Prefrontal synaptic plasticity).
+  - $H_2$ giải thích bằng cơ chế nhịp sinh học: Lệch pha nhân trên chéo (Suprachiasmatic nucleus desynchrony).
+  - $H_3$ giải thích bằng cơ chế dược lý: Tích tụ adenosine cấp tính làm nghẽn dẫn truyền thần kinh.
+
+#### Trụ Cột 5: Tính Liêm Chính Nguồn Gốc (Data Lineage & Traceability)
+- **Bản chất khoa học:** Giả thuyết khoa học phải được sinh ra để lấp đầy một khoảng trống cụ thể trong văn hiến, chứ không phải do mô hình "tự biên tự diễn".
+- **Biểu hiện của mô hình mạnh:** Ràng buộc chặt chẽ chuỗi mắt xích dữ liệu:
+  $$\text{Sub-question } SQ_1 \longrightarrow \text{Query } q_1 \longrightarrow \text{Paper } p_1 \longrightarrow \text{Limitation of } p_1 \longrightarrow \text{Research Gap } G_1 \longrightarrow \text{Hypothesis } H_1$$
+  Mỗi giả thuyết đều lưu khóa ngoại trỏ về `sub_question: "SQ1"` và `gap: "G1"`.
+
+---
+
+### 4.3. BẢNG ĐỐI ĐẦU TRỰC TIẾP GIỮA HAI OUTPUT HYPOTHESIS THỰC TẾ
+
+Dưới đây là ví dụ đối chiếu trực tiếp giữa output của **Mô hình Mạnh Đạt Chuẩn (Current Engine)** và **Mô hình Yếu / Thất Bại (Weaker Model)** trên cùng một đề tài `"Effects of sleep duration on exam scores"`:
+
+```json
+// =========================================================================
+// OUTPUT CỦA MÔ HÌNH MẠNH ĐẠT CHUẨN (RELIABLE SCIENTIFIC OUTPUT)
+// =========================================================================
+{
+  "H1": {
+    "statement": "An increase of 1 SD in objective nightly sleep duration over a 4-week pre-exam window increases standardized exam scores by at least 0.25 SD (beta >= 0.25), controlling for student fixed effects.",
+    "prediction": "> 0",
+    "exposure": "Average nightly actigraphy hours vs. individual baseline",
+    "outcome": "Standardized exam score delta",
+    "estimand": "Adjusted regression slope beta",
+    "method": "Within-subjects fixed-effects panel regression",
+    "sub_question": "SQ1",
+    "gap": "G1",
+    "novelty": "First study to isolate within-person actigraphy variance across semester examinations using student fixed-effect controls.",
+    "rationale": "Slow-wave sleep directly restores prefrontal synaptic capacity required for complex reasoning under time pressure.",
+    "falsify": {
+      "text": "Wrong if the 95% bootstrap confidence interval for beta includes zero or falls below 0.",
+      "zone": [null, 0],
+      "unit": "Standardized score SD"
+    }
+  },
+  "H2": {
+    "statement": "High variance in sleep onset timing (Sleep Regularity Index < 60) degrades cognitive working memory accuracy by at least 15%, regardless of total sleep duration.",
+    "prediction": "< 0",
+    "exposure": "Low sleep regularity index (< 60) vs. high regularity (>= 80)",
+    "outcome": "Working memory n-back task accuracy delta",
+    "estimand": "Average Treatment Effect (ATE)",
+    "method": "Matching estimator with propensity score adjustment",
+    "sub_question": "SQ2",
+    "gap": "G2",
+    "novelty": "Isolates circadian sleep regularity independently from gross sleep duration under standardized testing constraints.",
+    "rationale": "Circadian desynchrony impairs suprachiasmatic nucleus alignment, inducing attentional lapses during retrieval.",
+    "falsify": {
+      "text": "Wrong if the 95% confidence interval includes 0 or indicates positive accuracy gain.",
+      "zone": [0, null],
+      "unit": "% Accuracy drop"
+    }
+  }
+}
+```
+
+```json
+// =========================================================================
+// OUTPUT CỦA MÔ HÌNH YẾU / KHÔNG ĐẠT CHUẨN (UNRELIABLE / DEGENERATE OUTPUT)
+// =========================================================================
+{
+  "H1": {
+    "statement": "Sleep duration positively affects students' exam scores.",
+    "prediction": "> 0",
+    "exposure": "sleep",
+    "outcome": "score",
+    "estimand": "difference",
+    "method": "statistical test",
+    "sub_question": "SQ1",
+    "gap": "G1",
+    "novelty": "Derived from literature limitations.",
+    "rationale": "Better sleep improves brain performance.",
+    "falsify": {
+      "text": "Wrong if students who sleep more do not get good marks.",
+      "zone": null,  // LỖI: Không có vùng đỏ bác bỏ, không thể vẽ đồ thị
+      "unit": "points"
+    }
+  },
+  "H2": {
+    "statement": "Regular sleep also improves exam scores positively.",
+    "prediction": "> 0",  // LỖI: Sụp đổ đơn điệu, cả 4 giả thuyết đều dự đoán > 0
+    "exposure": "sleep",
+    "outcome": "score",
+    "estimand": "difference",
+    "method": "statistical test",
+    "sub_question": "SQ1",
+    "gap": "G1",
+    "novelty": "Derived from literature limitations.",  // LỖI: Copy-paste nguyên văn template H1
+    "rationale": "Better sleep improves brain performance.",  // LỖI: Copy-paste nguyên văn template H1
+    "falsify": {
+      "text": "Wrong if regular sleep has no impact.",
+      "zone": null,
+      "unit": "points"
+    }
+  }
+}
+```
+
+---
+
+### 4.4. CHECKLIST VÀ CÔNG THỨC TÍNH ĐIỂM ĐỘ TIN CẬY CỦA HYPOTHESIS (HRS)
+
+Khi đánh giá bất kỳ LLM nào trên Stage 06, hãy áp dụng công thức **Hypothesis Reliability Score (HRS $\in [0, 10]$)**:
+
+$$\text{HRS} = 2.5 \cdot M_{\text{falsify}} + 2.5 \cdot M_{\text{diversity}} + 2.0 \cdot M_{\text{anti\_degeneracy}} + 1.5 \cdot M_{\text{quant}} + 1.5 \cdot M_{\text{lineage}}$$
+
+Trong đó các tiêu chí thành phần được kiểm tra tự động qua đoạn mã sau:
+
+```python
+def evaluate_hypothesis_reliability(hypotheses: dict) -> dict:
+    results = {}
+    
+    # 1. Kiểm tra Vùng Đỏ Bác Bỏ Karl Popper (M_falsify)
+    valid_zones = 0
+    for h in hypotheses.values():
+        zone = h.get("falsify", {}).get("zone")
+        if zone in ([None, 0], [0, None], [0, 0]):
+            valid_zones += 1
+    results["M_falsify"] = valid_zones / len(hypotheses)  # 1.0 nếu 100% có zone chuẩn
+    
+    # 2. Kiểm tra Độ Đa Dạng Hướng Dự Đoán (M_diversity)
+    preds = set(h.get("prediction") for h in hypotheses.values())
+    has_pos = "> 0" in preds
+    has_neg_or_inter = ("< 0" in preds) or ("≠ 0" in preds) or ("!= 0" in preds)
+    results["M_diversity"] = 1.0 if (has_pos and has_neg_or_inter) else 0.2
+    
+    # 3. Kiểm tra Chống Suy Biến Văn Bản Template (M_anti_degeneracy)
+    novelties = set(h.get("novelty", "").strip() for h in hypotheses.values())
+    rationales = set(h.get("rationale", "").strip() for h in hypotheses.values())
+    results["M_anti_degeneracy"] = (len(novelties) / len(hypotheses) + len(rationales) / len(hypotheses)) / 2.0
+    
+    # 4. Kiểm tra Lượng Hóa Biến Số (M_quant)
+    quant_score = 0
+    for h in hypotheses.values():
+        if h.get("exposure") and h.get("outcome") and h.get("estimand") and len(h["statement"]) > 40:
+            quant_score += 1
+    results["M_quant"] = quant_score / len(hypotheses)
+    
+    # 5. Kiểm tra Nguồn Gốc Liên Stage (M_lineage)
+    lineage_score = 0
+    for h in hypotheses.values():
+        if h.get("sub_question", "").startswith("SQ") and h.get("gap", "").startswith("G"):
+            lineage_score += 1
+    results["M_lineage"] = lineage_score / len(hypotheses)
+    
+    # Tổng điểm HRS trên thang 10
+    total_hrs = (
+        2.5 * results["M_falsify"] +
+        2.5 * results["M_diversity"] +
+        2.0 * results["M_anti_degeneracy"] +
+        1.5 * results["M_quant"] +
+        1.5 * results["M_lineage"]
+    ) * 10.0 / 10.0
+    
+    results["TOTAL_HRS"] = round(total_hrs, 2)
+    return results
+```
+
+- **Mô hình Mạnh (Current Engine):** Đạt điểm $\text{HRS} \ge 9.0/10$ (Thỏa mãn 100% các tiêu chí).
+- **Mô hình Yếu (Weaker/Raw LLMs):** Thường chỉ đạt $\text{HRS} \approx 2.0 - 4.5/10$ do sụp đổ đơn điệu (100% dự đoán `> 0`), không có `falsify.zone`, và lặp lại template novelty/rationale.
+
+---
+
+## PHẦN 5: HƯỚNG DẪN THỰC THI SCRIPT ĐỐI CHIẾU TRÊN CODEBASE
 
 Trong codebase hiện tại, bạn có thể sử dụng file test contract sẵn có tại [scratch/test_contract_hypo_diversity.py](file:///d:/AutoResearchClaw/scratch/test_contract_hypo_diversity.py) để kiểm tra tự động các assertion này:
 
@@ -963,3 +1221,4 @@ python d:/AutoResearchClaw/scratch/test_contract_hypo_diversity.py
 4. `assert len(rationales) == 4`: 100% các câu giải thích cơ chế nhân quả phải độc nhất.
 
 Tài liệu này cung cấp toàn bộ nền tảng định lượng để bạn tự tin so sánh, chấm điểm và đối chiếu bất kỳ mô hình LLM nào với hệ thống hiện tại!
+
