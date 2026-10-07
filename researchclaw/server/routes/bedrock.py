@@ -37,9 +37,9 @@ class BedrockHealthCheckRequest(BaseModel):
         examples=["us-east-1"]
     )
     model_id: str = Field(
-        default="anthropic.claude-3-5-sonnet-20241022-v2:0",
-        description="Mã Model ID trên AWS Bedrock (ví dụ: anthropic.claude-3-5-sonnet-20241022-v2:0, anthropic.claude-3-haiku-20240307-v1:0, amazon.titan-text-express-v1, meta.llama3-8b-instruct-v1:0)",
-        examples=["anthropic.claude-3-5-sonnet-20241022-v2:0"]
+        default="us.anthropic.claude-haiku-4-5-20251001-v1:0",
+        description="Mã Model ID trên AWS Bedrock (ví dụ: us.anthropic.claude-haiku-4-5-20251001-v1:0, us.anthropic.claude-sonnet-4-5-20250929-v1:0)",
+        examples=["us.anthropic.claude-haiku-4-5-20251001-v1:0"]
     )
     test_prompt: str = Field(
         default="Hello! Please confirm AWS Bedrock connectivity with a one-sentence greeting.",
@@ -252,7 +252,7 @@ async def check_bedrock_health(req: BedrockHealthCheckRequest) -> BedrockHealthC
 
 @router.get("", response_model=BedrockHealthCheckResponse, summary="Kiểm tra nhanh AWS Bedrock bằng biến môi trường (GET)")
 async def check_bedrock_health_env(
-    model_id: str = Query("anthropic.claude-3-5-sonnet-20241022-v2:0", description="Mã Model ID cần test"),
+    model_id: str = Query("us.anthropic.claude-haiku-4-5-20251001-v1:0", description="Mã Model ID cần test"),
     region: str = Query("us-east-1", description="AWS Region")
 ) -> BedrockHealthCheckResponse:
     """Endpoint GET tiện lợi để test ngay AWS Bedrock dựa trên credentials lưu sẵn trong file `.env`."""

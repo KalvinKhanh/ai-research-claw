@@ -120,6 +120,8 @@ class RunSession:
         self.gate_answer: dict[str, Any] | None = None
         self.is_cancelled = False
         self.task: asyncio.Task[None] | None = None
+        self._dispatch_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        self._dispatcher_task: asyncio.Task[None] | None = asyncio.create_task(self._dispatch_worker())
 
     async def emit_event(
         self,
@@ -128,7 +130,7 @@ class RunSession:
         stage_key: str | None = None,
         actor: str | None = None,
     ) -> dict[str, Any]:
-        """Record an event with sequential source_seq and dispatch to callback."""
+        """Record an event with sequential source_seq and enqueue for FIFO dispatch."""
         if self.is_cancelled:
             return {}
 
@@ -146,14 +148,28 @@ class RunSession:
             event["actor"] = actor
 
         self.events.append(event)
-
-        # Dispatch immediately to Platform BE callback
-        asyncio.create_task(self._send_callback([event]))
+        self._dispatch_queue.put_nowait(event)
         return event
+
+    async def _dispatch_worker(self) -> None:
+        """Sequential single-flight worker ensuring strict FIFO ordering to Platform BE."""
+        while not self.is_cancelled:
+            try:
+                first_event = await self._dispatch_queue.get()
+            except asyncio.CancelledError:
+                break
+            batch = [first_event]
+            while not self._dispatch_queue.empty():
+                batch.append(self._dispatch_queue.get_nowait())
+
+            await self._send_callback(batch)
 
     async def _send_callback(self, events: list[dict[str, Any]]) -> None:
         """Send events batch to callback_url with exponential retry."""
-        url = f"{self.callback_url}/events"
+        if self.callback_url.endswith("/events"):
+            url = self.callback_url
+        else:
+            url = f"{self.callback_url}/events"
         headers = {"Content-Type": "application/json"}
         if self.service_key:
             headers["X-Service-Key"] = self.service_key
@@ -197,18 +213,13 @@ _PLATFORM_MAP: dict[str, str] = {}  # platform_run_id -> popper_run_id
 # Background Pipeline Execution (Stages 1 to 8)
 # ---------------------------------------------------------------------------
 
-async def _execute_pipeline(session: RunSession) -> None:
-    """Execute the full 8-stage research pipeline and emit structured events."""
-    try:
-        from researchclaw.llm.bedrock_adapter import BedrockAdapter
-        llm = BedrockAdapter()
-    except Exception as e:
-        logger.warning(f"Bedrock adapter fallback to heuristic generator: {e}")
-        llm = None
+from researchclaw.pipeline.full_runner import execute_full_pipeline
 
-    topic = session.topic
-    domains = session.domains or ["Computer Science", "Artificial Intelligence"]
-    mode = session.review_mode
+async def _execute_pipeline(session: RunSession) -> None:
+    """Execute the full 8-stage research pipeline with complete Frontend contract events."""
+    await execute_full_pipeline(session)
+
+async def _legacy_pipeline(session: RunSession) -> None:
 
     try:
         # --- 1. Run Initial Events ---
@@ -479,9 +490,15 @@ async def _execute_pipeline(session: RunSession) -> None:
             actor="theorist",
         )
         for p in sample_papers:
+            rel = 9.2 if p["id"] != "paper_2022_03" else 7.8
             await session.emit_event(
                 "screen.scored",
-                {"paper_id": p["id"], "score": 9.2 if p["id"] != "paper_2022_03" else 7.8, "decision": "include"},
+                {
+                    "points": [{"id": p["id"], "relevance": rel, "quality": 8.5}],
+                    "paper_id": p["id"],
+                    "score": rel,
+                    "decision": "include",
+                },
                 stage_key="screen",
                 actor="theorist",
             )
