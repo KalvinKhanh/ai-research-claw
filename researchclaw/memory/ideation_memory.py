@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from researchclaw.memory.retriever import MemoryRetriever
@@ -22,10 +23,27 @@ class IdeationMemory:
 
     def __init__(
         self,
-        store: MemoryStore,
-        retriever: MemoryRetriever,
+        store: MemoryStore | str | Path | None = None,
+        retriever: MemoryRetriever | None = None,
         embed_fn: Any = None,
+        *,
+        store_dir: str | Path | None = None,
     ) -> None:
+        effective_store_dir = store_dir
+        if isinstance(store, (str, Path)):
+            effective_store_dir = store
+            store = None
+
+        if store is None:
+            if effective_store_dir is None:
+                raise TypeError(
+                    "IdeationMemory requires either 'store' (MemoryStore) or 'store_dir'."
+                )
+            store = MemoryStore(effective_store_dir)
+
+        if retriever is None:
+            retriever = MemoryRetriever(store)
+
         self._store = store
         self._retriever = retriever
         self._embed_fn = embed_fn

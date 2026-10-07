@@ -17,6 +17,7 @@ import math
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+# pyrefly: ignore [missing-import]
 import pytest
 
 from researchclaw.memory.store import MemoryEntry, MemoryStore, VALID_CATEGORIES
@@ -447,6 +448,14 @@ class TestIdeationMemory:
         result = im.recall_similar_topics("test query")
         assert result == ""
 
+    def test_init_with_store_dir(self, tmp_path: Path) -> None:
+        mem_dir = tmp_path / "ideation_mem"
+        im = IdeationMemory(store_dir=str(mem_dir))
+        assert im._store is not None
+        assert im._retriever is not None
+        im.record_topic_outcome("Quantum AI", "success", 8.0)
+        assert im._store.count("ideation") == 1
+
 
 # ── Experiment Memory ────────────────────────────────────────────────
 
@@ -478,6 +487,14 @@ class TestExperimentMemory:
         result = em.recall_best_configs("anything")
         assert result == ""
 
+    def test_init_with_store_dir(self, tmp_path: Path) -> None:
+        mem_dir = tmp_path / "exp_mem"
+        em = ExperimentMemory(store_dir=str(mem_dir))
+        assert em._store is not None
+        assert em._retriever is not None
+        em.record_training_trick("AdamW", 0.05, "Transformer fine-tuning")
+        assert em._store.count("experiment") == 1
+
 
 # ── Writing Memory ───────────────────────────────────────────────────
 
@@ -501,3 +518,11 @@ class TestWritingMemory:
         wm = WritingMemory(store, retriever)
         result = wm.recall_writing_tips("method", "RL paper")
         assert result == ""
+
+    def test_init_with_store_dir(self, tmp_path: Path) -> None:
+        mem_dir = tmp_path / "writing_mem"
+        wm = WritingMemory(store_dir=str(mem_dir))
+        assert wm._store is not None
+        assert wm._retriever is not None
+        wm.record_review_feedback("structure", "Use subsection", "Fixed")
+        assert wm._store.count("writing") == 1

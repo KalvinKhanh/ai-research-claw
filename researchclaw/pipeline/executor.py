@@ -126,71 +126,6 @@ from researchclaw.pipeline.stage_impls._synthesis import (  # noqa: E402
     _execute_hypothesis_gen,
 )
 
-# ---------------------------------------------------------------------------
-# Stage 9 (extracted to stage_impls/_experiment_design.py)
-# ---------------------------------------------------------------------------
-from researchclaw.pipeline.stage_impls._experiment_design import (  # noqa: E402
-    _execute_experiment_design,
-)
-
-# ---------------------------------------------------------------------------
-# Stage 10 (extracted to stage_impls/_code_generation.py)
-# ---------------------------------------------------------------------------
-from researchclaw.pipeline.stage_impls._code_generation import (  # noqa: E402
-    _execute_code_generation,
-)
-
-# ---------------------------------------------------------------------------
-# Stages 11-13 (extracted to stage_impls/_execution.py)
-# ---------------------------------------------------------------------------
-from researchclaw.pipeline.stage_impls._execution import (  # noqa: E402
-    _execute_resource_planning,
-    _execute_experiment_run,
-    _execute_iterative_refine,
-)
-
-# ---------------------------------------------------------------------------
-# Stages 14-15 (extracted to stage_impls/_analysis.py)
-# ---------------------------------------------------------------------------
-from researchclaw.pipeline.stage_impls._analysis import (  # noqa: E402
-    _execute_result_analysis,
-    _parse_decision,
-    _execute_research_decision,
-)
-
-# ---------------------------------------------------------------------------
-# Stages 16-17 (extracted to stage_impls/_paper_writing.py)
-# ---------------------------------------------------------------------------
-from researchclaw.pipeline.stage_impls._paper_writing import (  # noqa: E402
-    _execute_paper_outline,
-    _execute_paper_draft,
-    _collect_raw_experiment_metrics,
-    _write_paper_sections,
-    _validate_draft_quality,
-    _review_compiled_pdf,
-    _check_ablation_effectiveness,
-    _detect_result_contradictions,
-    _BULLET_LENIENT_SECTIONS,
-    _BALANCE_SECTIONS,
-)
-
-# ---------------------------------------------------------------------------
-# Stages 18-23 (extracted to stage_impls/_review_publish.py)
-# ---------------------------------------------------------------------------
-from researchclaw.pipeline.stage_impls._review_publish import (  # noqa: E402
-    _execute_peer_review,
-    _execute_paper_revision,
-    _execute_quality_gate,
-    _execute_knowledge_archive,
-    _execute_export_publish,
-    _execute_citation_verify,
-    _sanitize_fabricated_data,
-    _collect_experiment_evidence,
-    _check_citation_relevance,
-    _remove_bibtex_entries,
-    _remove_citations_from_text,
-)
-
 
 def _get_hitl_session(adapters: AdapterBundle) -> Any:
     """Retrieve the HITLSession from the adapter bundle (if any)."""
@@ -573,21 +508,6 @@ _STAGE_EXECUTORS: dict[Stage, Callable[..., StageResult]] = {
     Stage.KNOWLEDGE_EXTRACT: _execute_knowledge_extract,
     Stage.SYNTHESIS: _execute_synthesis,
     Stage.HYPOTHESIS_GEN: _execute_hypothesis_gen,
-    Stage.EXPERIMENT_DESIGN: _execute_experiment_design,
-    Stage.CODE_GENERATION: _execute_code_generation,
-    Stage.RESOURCE_PLANNING: _execute_resource_planning,
-    Stage.EXPERIMENT_RUN: _execute_experiment_run,
-    Stage.ITERATIVE_REFINE: _execute_iterative_refine,
-    Stage.RESULT_ANALYSIS: _execute_result_analysis,
-    Stage.RESEARCH_DECISION: _execute_research_decision,
-    Stage.PAPER_OUTLINE: _execute_paper_outline,
-    Stage.PAPER_DRAFT: _execute_paper_draft,
-    Stage.PEER_REVIEW: _execute_peer_review,
-    Stage.PAPER_REVISION: _execute_paper_revision,
-    Stage.QUALITY_GATE: _execute_quality_gate,
-    Stage.KNOWLEDGE_ARCHIVE: _execute_knowledge_archive,
-    Stage.EXPORT_PUBLISH: _execute_export_publish,
-    Stage.CITATION_VERIFY: _execute_citation_verify,
 }
 
 
