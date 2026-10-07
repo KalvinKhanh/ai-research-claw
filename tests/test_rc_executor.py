@@ -574,18 +574,7 @@ def test_execute_stage_executor_exception_returns_failed(
 
 @pytest.mark.parametrize(
     "stage",
-    [
-        Stage.TOPIC_INIT,
-        Stage.PROBLEM_DECOMPOSE,
-        Stage.SEARCH_STRATEGY,
-        Stage.LITERATURE_COLLECT,
-        Stage.LITERATURE_SCREEN,
-        Stage.KNOWLEDGE_EXTRACT,
-        Stage.SYNTHESIS,
-        Stage.HYPOTHESIS_GEN,
-        Stage.EXPERIMENT_DESIGN,
-        Stage.CODE_GENERATION,
-    ],
+    list(Stage),
 )
 def test_stage_executor_mapping_values_are_callable(stage: Stage) -> None:
     assert callable(rc_executor._STAGE_EXECUTORS[stage])

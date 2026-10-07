@@ -93,7 +93,7 @@ def test_execute_pipeline_runs_stages_in_sequence(
         adapters=adapters,
     )
     assert seen == list(STAGE_SEQUENCE)
-    assert len(results) == 23
+    assert len(results) == len(STAGE_SEQUENCE)
     assert all(r.status == StageStatus.DONE for r in results)
 
 
@@ -129,7 +129,7 @@ def test_execute_pipeline_stops_on_paused_stage(
     rc_config: RCConfig,
     adapters: AdapterBundle,
 ) -> None:
-    pause_stage = Stage.ITERATIVE_REFINE
+    pause_stage = Stage.LITERATURE_COLLECT
 
     def mock_execute_stage(stage: Stage, **kwargs) -> StageResult:
         _ = kwargs
@@ -148,7 +148,7 @@ def test_execute_pipeline_stops_on_paused_stage(
     assert results[-1].status == StageStatus.PAUSED
     assert len(results) == int(pause_stage)
     checkpoint = json.loads((run_dir / "checkpoint.json").read_text(encoding="utf-8"))
-    assert checkpoint["last_completed_stage"] == int(Stage.EXPERIMENT_RUN)
+    assert checkpoint["last_completed_stage"] == int(Stage.SEARCH_STRATEGY)
     summary = json.loads((run_dir / "pipeline_summary.json").read_text(encoding="utf-8"))
     assert summary["stages_paused"] == 1
     assert summary["final_status"] == "paused"
@@ -203,7 +203,7 @@ def test_execute_pipeline_continues_after_gate_when_stop_on_gate_disabled(
         adapters=adapters,
         stop_on_gate=False,
     )
-    assert len(results) == 23
+    assert len(results) == len(STAGE_SEQUENCE)
     assert any(item.status == StageStatus.BLOCKED_APPROVAL for item in results)
 
 
@@ -286,10 +286,10 @@ def test_execute_pipeline_from_stage_skips_earlier_stages(
         run_id="run-from-stage",
         config=rc_config,
         adapters=adapters,
-        from_stage=Stage.PAPER_OUTLINE,
+        from_stage=Stage.SYNTHESIS,
     )
-    assert seen[0] == Stage.PAPER_OUTLINE
-    assert len(seen) == len(STAGE_SEQUENCE) - (int(Stage.PAPER_OUTLINE) - 1)
+    assert seen[0] == Stage.SYNTHESIS
+    assert len(seen) == len(STAGE_SEQUENCE) - (int(Stage.SYNTHESIS) - 1)
     assert len(results) == len(seen)
 
 
@@ -333,8 +333,8 @@ def test_execute_pipeline_writes_kb_entries_when_kb_root_provided(
         adapters=adapters,
         kb_root=kb_root,
     )
-    assert len(results) == 23
-    assert len(calls) == 23
+    assert len(results) == len(STAGE_SEQUENCE)
+    assert len(calls) == len(STAGE_SEQUENCE)
     assert calls[0] == (1, "topic_init", "run-kb")
 
 
@@ -367,7 +367,7 @@ def test_execute_pipeline_passes_auto_approve_flag_to_execute_stage(
     [
         (Stage.TOPIC_INIT, False, True),
         (Stage.PROBLEM_DECOMPOSE, False, False),
-        (Stage.PAPER_DRAFT, True, True),
+        (Stage.HYPOTHESIS_GEN, True, True),
     ],
 )
 def test_should_start_logic(stage: Stage, started: bool, expected: bool) -> None:
@@ -509,102 +509,7 @@ def _refine_result(stage: Stage) -> StageResult:
     )
 
 
-def test_pivot_decision_triggers_rollback_to_hypothesis_gen(
-    monkeypatch: pytest.MonkeyPatch,
-    run_dir: Path,
-    rc_config: RCConfig,
-    adapters: AdapterBundle,
-) -> None:
-    seen: list[Stage] = []
-    pivot_count = 0
-
-    def mock_execute_stage(stage: Stage, **kwargs) -> StageResult:
-        _ = kwargs
-        seen.append(stage)
-        nonlocal pivot_count
-        if stage == Stage.RESEARCH_DECISION and pivot_count == 0:
-            pivot_count += 1
-            return _pivot_result(stage)
-        return _done(stage)
-
-    monkeypatch.setattr(rc_runner, "execute_stage", mock_execute_stage)
-    results = rc_runner.execute_pipeline(
-        run_dir=run_dir,
-        run_id="run-pivot",
-        config=rc_config,
-        adapters=adapters,
-    )
-    # Should have seen HYPOTHESIS_GEN at least twice (original + rollback)
-    hyp_gen_count = sum(1 for s in seen if s == Stage.HYPOTHESIS_GEN)
-    assert hyp_gen_count >= 2
-    # Decision history should be recorded
-    history_path = run_dir / "decision_history.json"
-    assert history_path.exists()
-    history = json.loads(history_path.read_text())
-    assert len(history) == 1
-    assert history[0]["decision"] == "pivot"
-
-
-def test_refine_decision_triggers_rollback_to_iterative_refine(
-    monkeypatch: pytest.MonkeyPatch,
-    run_dir: Path,
-    rc_config: RCConfig,
-    adapters: AdapterBundle,
-) -> None:
-    seen: list[Stage] = []
-    refine_count = 0
-
-    def mock_execute_stage(stage: Stage, **kwargs) -> StageResult:
-        _ = kwargs
-        seen.append(stage)
-        nonlocal refine_count
-        if stage == Stage.RESEARCH_DECISION and refine_count == 0:
-            refine_count += 1
-            return _refine_result(stage)
-        return _done(stage)
-
-    monkeypatch.setattr(rc_runner, "execute_stage", mock_execute_stage)
-    results = rc_runner.execute_pipeline(
-        run_dir=run_dir,
-        run_id="run-refine",
-        config=rc_config,
-        adapters=adapters,
-    )
-    # Should have seen ITERATIVE_REFINE at least twice
-    refine_stage_count = sum(1 for s in seen if s == Stage.ITERATIVE_REFINE)
-    assert refine_stage_count >= 2
-
-
-def test_max_pivot_count_prevents_infinite_loop(
-    monkeypatch: pytest.MonkeyPatch,
-    run_dir: Path,
-    rc_config: RCConfig,
-    adapters: AdapterBundle,
-) -> None:
-    seen: list[Stage] = []
-
-    def mock_execute_stage(stage: Stage, **kwargs) -> StageResult:
-        _ = kwargs
-        seen.append(stage)
-        # Always PIVOT — should be limited by MAX_DECISION_PIVOTS
-        if stage == Stage.RESEARCH_DECISION:
-            return _pivot_result(stage)
-        return _done(stage)
-
-    monkeypatch.setattr(rc_runner, "execute_stage", mock_execute_stage)
-    results = rc_runner.execute_pipeline(
-        run_dir=run_dir,
-        run_id="run-max-pivot",
-        config=rc_config,
-        adapters=adapters,
-    )
-    # RESEARCH_DECISION should appear at most MAX_DECISION_PIVOTS + 1 times
-    from researchclaw.pipeline.stages import MAX_DECISION_PIVOTS
-    decision_count = sum(1 for s in seen if s == Stage.RESEARCH_DECISION)
-    assert decision_count <= MAX_DECISION_PIVOTS + 1
-
-
-def test_proceed_decision_does_not_trigger_rollback(
+def test_proceed_decision_runs_all_stages(
     monkeypatch: pytest.MonkeyPatch,
     run_dir: Path,
     rc_config: RCConfig,
@@ -624,22 +529,8 @@ def test_proceed_decision_does_not_trigger_rollback(
         config=rc_config,
         adapters=adapters,
     )
-    # Should be exactly 23 stages, no rollback
-    assert len(seen) == 23
-    assert not (run_dir / "decision_history.json").exists()
-
-
-def test_read_pivot_count_returns_zero_for_no_history(run_dir: Path) -> None:
-    assert rc_runner._read_pivot_count(run_dir) == 0
-
-
-def test_record_decision_history_appends(run_dir: Path) -> None:
-    rc_runner._record_decision_history(run_dir, "pivot", Stage.HYPOTHESIS_GEN, 1)
-    rc_runner._record_decision_history(run_dir, "refine", Stage.ITERATIVE_REFINE, 2)
-    history = json.loads((run_dir / "decision_history.json").read_text())
-    assert len(history) == 2
-    assert history[0]["decision"] == "pivot"
-    assert history[1]["decision"] == "refine"
+    assert len(seen) == len(STAGE_SEQUENCE)
+    assert len(results) == len(STAGE_SEQUENCE)
 
 
 # ── Deliverables packaging tests ──
@@ -827,13 +718,13 @@ def test_degraded_quality_gate_continues_pipeline(
     adapters: AdapterBundle,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """When quality gate returns decision='degraded', pipeline continues to completion."""
+    """When a gate returns decision='degraded', pipeline continues to completion."""
     seen: list[Stage] = []
 
     def mock_execute_stage(stage: Stage, **kwargs) -> StageResult:
         _ = kwargs
         seen.append(stage)
-        if stage == Stage.QUALITY_GATE:
+        if stage == Stage.LITERATURE_SCREEN:
             return _degraded(stage)
         return _done(stage)
 
@@ -844,11 +735,11 @@ def test_degraded_quality_gate_continues_pipeline(
         config=rc_config,
         adapters=adapters,
     )
-    # All 23 stages should execute (not stopped at quality gate)
-    assert len(results) == 23
+    # All stages should execute (not stopped at gate)
+    assert len(results) == len(STAGE_SEQUENCE)
     assert seen == list(STAGE_SEQUENCE)
-    # Quality gate result should have decision="degraded"
-    qg_result = [r for r in results if r.stage == Stage.QUALITY_GATE][0]
+    # Gate result should have decision="degraded"
+    qg_result = [r for r in results if r.stage == Stage.LITERATURE_SCREEN][0]
     assert qg_result.decision == "degraded"
     assert qg_result.status == StageStatus.DONE
     # Pipeline summary should have degraded=True
@@ -1111,9 +1002,6 @@ def test_imp21_stage6_empty_shortlist_gate_halts_pipeline_under_auto_approve(
     for downstream in (
         Stage.SYNTHESIS,
         Stage.HYPOTHESIS_GEN,
-        Stage.EXPERIMENT_DESIGN,
-        Stage.PAPER_OUTLINE,
-        Stage.EXPORT_PUBLISH,
     ):
         assert downstream not in executed_stages, (
             f"IMP-21 regression: {downstream.name} should not have run after "
