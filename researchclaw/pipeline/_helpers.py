@@ -902,6 +902,44 @@ def _collect_json_context(
     return "\n\n".join(chunks)
 
 
+def extract_paired_comparisons(stdout: str) -> list[dict[str, object]]:
+    """R18-1: Extract PAIRED statistical comparison lines from stdout.
+
+    Matches: PAIRED: <method> vs <baseline> [regime=<r>] mean_diff=<v> ...
+    Returns a list of dicts with method, baseline, regime, and stats.
+    """
+    results: list[dict[str, object]] = []
+    pattern = re.compile(
+        r"^PAIRED:\s+(\S+)\s+vs\s+(\S+)\s*(.*?)mean_diff=([+-]?\d+\.?\d*)"
+        r".*?std_diff=([+-]?\d+\.?\d*)"
+        r".*?t_stat=([+-]?\d+\.?\d*)"
+        r".*?p_value=([+-]?\d+\.?\d*)"
+    )
+    for line in stdout.splitlines():
+        m = pattern.match(line.strip())
+        if m:
+            method, baseline, tags, mean_diff, std_diff, t_stat, p_value = m.groups()
+            entry: dict[str, object] = {
+                "method": method,
+                "baseline": baseline,
+                "mean_diff": float(mean_diff),
+                "std_diff": float(std_diff),
+                "t_stat": float(t_stat),
+                "p_value": float(p_value),
+            }
+            # Extract regime if present
+            regime_m = re.search(r"regime=(\S+)", tags)
+            if regime_m:
+                entry["regime"] = regime_m.group(1)
+            # Extract CI if present
+            ci_m = re.search(r"ci95=\(([^,]+),([^)]+)\)", line)
+            if ci_m:
+                entry["ci95_low"] = float(ci_m.group(1))
+                entry["ci95_high"] = float(ci_m.group(2))
+            results.append(entry)
+    return results
+
+
 def _collect_experiment_results(
     run_dir: Path,
     metric_key: str = "",
@@ -1024,8 +1062,6 @@ def _collect_experiment_results(
     latex_lines.append(r"\end{table}")
 
     # R18-1: Extract paired statistical comparisons from stdout
-    from researchclaw.experiment.sandbox import extract_paired_comparisons
-
     paired_comparisons: list[dict[str, object]] = []
     for r in runs_data:
         stdout = r.get("stdout", "")

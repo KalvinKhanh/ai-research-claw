@@ -277,7 +277,7 @@ class LLMClient:
         if system:
             messages = [{"role": "system", "content": system}] + messages
 
-        models = [model] if model else self._model_chain
+        models = [model] if model else list(self._model_chain)
         max_tok = max_tokens or self.config.max_tokens
         temp = temperature if temperature is not None else self.config.temperature
 
@@ -303,6 +303,11 @@ class LLMClient:
             except Exception as exc:  # noqa: BLE001
                 logger.warning("Model %s failed: %s. Trying next.", m, exc)
                 last_error = exc
+                # Rotate: a rate-limited model goes to the back of the chain so
+                # later calls start with a model that still has quota.
+                if not model and "429" in str(exc) and m in self._model_chain:
+                    self._model_chain.remove(m)
+                    self._model_chain.append(m)
 
         raise RuntimeError(
             f"All models failed. Last error: {last_error}"

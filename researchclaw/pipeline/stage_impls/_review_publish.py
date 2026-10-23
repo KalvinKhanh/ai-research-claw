@@ -1,4 +1,4 @@
-"""Stages 18-23: Peer review, paper revision, quality gate, knowledge archive, export/publish, and citation verify."""
+"""Stages 18-23: Peer review, paper revision, quality gate, export/publish, and citation verify."""
 
 from __future__ import annotations
 
@@ -498,6 +498,13 @@ def _execute_quality_gate(
         # BUG-180: If we found real condition data, don't mark as failed
         if _best_richness > 0:
             _exp_failed = False
+    # Literature-first (survey / docs-first) papers have no experiments by
+    # design, so a missing experiment summary is not an experiment failure.
+    from researchclaw.pipeline.stage_impls._paper_writing import (
+        _topic_is_literature_first,
+    )
+    if _topic_is_literature_first(config):
+        _exp_failed = False
 
     if _judge_llm is not None:
         _pm = prompts or PromptManager()
@@ -707,82 +714,6 @@ def _execute_quality_gate(
 
 # ---------------------------------------------------------------------------
 # Stage 21: Knowledge Archive
-# ---------------------------------------------------------------------------
-
-def _execute_knowledge_archive(
-    stage_dir: Path,
-    run_dir: Path,
-    config: RCConfig,
-    adapters: AdapterBundle,
-    *,
-    llm: LLMClient | None = None,
-    prompts: PromptManager | None = None,
-) -> StageResult:
-    revised = _read_prior_artifact(run_dir, "paper_revised.md") or ""
-    analysis = _read_best_analysis(run_dir)
-    decision = _read_prior_artifact(run_dir, "decision.md") or ""
-    preamble = _build_context_preamble(config, run_dir, include_goal=True)
-    if llm is not None:
-        _pm = prompts or PromptManager()
-        _overlay = _get_evolution_overlay(run_dir, "knowledge_archive")
-        sp = _pm.for_stage(
-            "knowledge_archive",
-            evolution_overlay=_overlay,
-            preamble=preamble,
-            decision=decision,
-            analysis=analysis,
-            revised=revised[:15000],
-        )
-        resp = _chat_with_prompt(
-            llm,
-            sp.system,
-            sp.user,
-            json_mode=sp.json_mode,
-            max_tokens=sp.max_tokens,
-        )
-        archive = resp.content
-    else:
-        archive = f"""# Knowledge Archive
-
-## Lessons Learned
-- Preserve strict metric reporting protocol.
-- Keep refinement logs aligned with code changes.
-
-## Reproducibility
-- Include exact experiment script and schedule.
-- Capture run-level JSON metrics.
-
-## Future Work
-- Extend robustness and external validity checks.
-
-Generated: {_utcnow_iso()}
-"""
-    (stage_dir / "archive.md").write_text(archive, encoding="utf-8")
-
-    files: list[str] = []
-    for stage_subdir in sorted(run_dir.glob("stage-*")):
-        for artifact in sorted(stage_subdir.rglob("*")):
-            if artifact.is_file() and artifact != (stage_dir / "bundle_index.json"):
-                files.append(str(artifact.relative_to(run_dir)))
-    index = {
-        "run_id": run_dir.name,
-        "generated": _utcnow_iso(),
-        "artifact_count": len(files),
-        "artifacts": files,
-    }
-    (stage_dir / "bundle_index.json").write_text(
-        json.dumps(index, indent=2), encoding="utf-8"
-    )
-    return StageResult(
-        stage=Stage.KNOWLEDGE_ARCHIVE,
-        status=StageStatus.DONE,
-        artifacts=("archive.md", "bundle_index.json"),
-        evidence_refs=("stage-21/archive.md", "stage-21/bundle_index.json"),
-    )
-
-
-# ---------------------------------------------------------------------------
-# _sanitize_fabricated_data helper
 # ---------------------------------------------------------------------------
 
 def _sanitize_fabricated_data(
@@ -2332,17 +2263,6 @@ def _execute_export_publish(
                         len(_fa_pngs), _fa_dir,
                     )
                     break
-
-            # Generate structured charts from visualize.py
-            from researchclaw.experiment.visualize import generate_all_charts
-            _metric_dir = getattr(config.experiment, "metric_direction", "minimize")
-            _viz_charts = generate_all_charts(
-                run_dir,
-                chart_dir,
-                metric_key=config.experiment.metric_key,
-                metric_direction=_metric_dir,
-            )
-            charts.extend(_viz_charts)
 
             if charts:
                 artifacts.append("charts/")
