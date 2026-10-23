@@ -1,41 +1,25 @@
 [project]
-name = "researchclaw"
-version = "0.5.0"
-description = "AutoResearchClaw — Autonomous Research Pipeline. Turn any research idea into a paper."
+name = "paperwriter"
+version = "0.1.0"
+description = "Literature-first paper writing (outline, draft, review, revision, LaTeX export, citation verification) extracted from AutoResearchClaw."
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
-    "rich>=13.0",
-    "arxiv>=2.1",
-    "numpy>=1.24",
 ]
-readme = "README.md"
+readme = "paperwriter/README.md"
 license = {text = "MIT"}
 
 [project.optional-dependencies]
 anthropic = ["httpx>=0.24"]
-web = ["scholarly>=1.7", "crawl4ai>=0.2", "tavily-python>=0.3"]
-pdf = ["PyMuPDF>=1.23"]
-all = [
-    "httpx>=0.24",
-    "scholarly>=1.7",
-    "crawl4ai>=0.2",
-    "tavily-python>=0.3",
-    "PyMuPDF>=1.23",
-    "huggingface-hub>=0.20",
-    "matplotlib>=3.7",
-    "scipy>=1.10",
-]
-dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "httpx>=0.24"]
+bedrock = ["boto3>=1.34"]
+arxiv = ["arxiv>=2.1"]
+dev = ["pytest>=7.0"]
 
 [project.scripts]
-researchclaw = "researchclaw.cli:main"
+paperwriter = "paperwriter.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["researchclaw", "sibyl", "arc"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"researchclaw/templates/styles" = "researchclaw/templates/styles"
+packages = ["paperwriter", "researchclaw"]
 
 [build-system]
 requires = ["hatchling"]

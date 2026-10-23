@@ -97,9 +97,9 @@ class TestTimeWeight:
 class TestExtractLessons:
     def _make_result(self, stage_num, status, error=None, decision="proceed"):
         from types import SimpleNamespace
-        from researchclaw.pipeline.stages import Stage, StageStatus
+        from researchclaw.pipeline.stages import StageStatus
 
-        stage = Stage(stage_num)
+        stage = stage_num  # extract_lessons only needs int(stage)
         return SimpleNamespace(
             stage=stage,
             status=StageStatus(status),

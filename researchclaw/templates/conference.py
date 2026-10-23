@@ -497,7 +497,6 @@ GENERIC = ConferenceTemplate(
         "amsmath",
         "graphicx",
         "natbib",
-        "geometry",
         "adjustbox",
     ),
     author_format="neurips",

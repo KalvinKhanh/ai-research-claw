@@ -23,14 +23,14 @@ class TestIMP13_ExtractPaperTitle:
     Verify the import works and the function produces correct results."""
 
     def test_import_works(self):
-        """The import `from researchclaw.pipeline.executor import _extract_paper_title`
+        """The import `from researchclaw.pipeline._helpers import _extract_paper_title`
         must succeed — runner.py line 394 depends on it."""
-        from researchclaw.pipeline.executor import _extract_paper_title
+        from researchclaw.pipeline._helpers import _extract_paper_title
         assert callable(_extract_paper_title), "_extract_paper_title should be callable"
         print("[IMP-13] PASS: import _extract_paper_title works")
 
     def test_extracts_h1_title(self):
-        from researchclaw.pipeline.executor import _extract_paper_title
+        from researchclaw.pipeline._helpers import _extract_paper_title
         md = textwrap.dedent("""\
             # A Novel Approach to Deep Reinforcement Learning
 
@@ -45,7 +45,7 @@ class TestIMP13_ExtractPaperTitle:
 
     def test_skips_abstract_heading(self):
         """Title before Abstract should be found; Abstract heading itself skipped."""
-        from researchclaw.pipeline.executor import _extract_paper_title
+        from researchclaw.pipeline._helpers import _extract_paper_title
         md = textwrap.dedent("""\
             # A Real Title of at Least Four Words
 
@@ -62,7 +62,7 @@ class TestIMP13_ExtractPaperTitle:
     def test_title_after_abstract_not_found(self):
         """If the only real title is AFTER Abstract, it should not be found
         (function searches only before Abstract heading)."""
-        from researchclaw.pipeline.executor import _extract_paper_title
+        from researchclaw.pipeline._helpers import _extract_paper_title
         md = textwrap.dedent("""\
             # Abstract
 
@@ -77,14 +77,14 @@ class TestIMP13_ExtractPaperTitle:
         print(f"[IMP-13] PASS: title after Abstract not found, fallback = {title!r}")
 
     def test_fallback_untitled(self):
-        from researchclaw.pipeline.executor import _extract_paper_title
+        from researchclaw.pipeline._helpers import _extract_paper_title
         md = "Just some text without any headings."
         title = _extract_paper_title(md)
         assert title == "Untitled Paper", f"Expected 'Untitled Paper', got: {title!r}"
         print(f"[IMP-13] PASS: fallback = {title!r}")
 
     def test_bold_title(self):
-        from researchclaw.pipeline.executor import _extract_paper_title
+        from researchclaw.pipeline._helpers import _extract_paper_title
         md = textwrap.dedent("""\
             **A Bold Title for This Paper**
 
